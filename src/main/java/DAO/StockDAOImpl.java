@@ -11,9 +11,19 @@ import static View.StockView.validateInput;
 
 public class StockDAOImpl implements StockDAO {
     private final Connection connection;
+    public static List<StockModel> stockModelsUnSaveInsert = new ArrayList<>();
+    public static List<StockModel> getStockModelsUnSaveUpdate = new ArrayList<>();
 
     public StockDAOImpl(Connection connection) {
         this.connection = connection;
+    }
+
+    public static List<StockModel> getStockModelsUnSaveInsert() {
+        return stockModelsUnSaveInsert;
+    }
+
+    public static List<StockModel> getGetStockModelsUnSaveUpdate() {
+        return getStockModelsUnSaveUpdate;
     }
 
     @Override
@@ -35,6 +45,16 @@ public class StockDAOImpl implements StockDAO {
         return stocks;
     }
 
+    @Override
+    public void insertStockUnsaved(StockModel stock) {
+        try {
+            // Add the stock model to the unSaveInsert list
+            stockModelsUnSaveInsert.add(stock);
+            System.out.println("Stock added to unSaveInsert list.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void insertStock(StockModel stock) {
@@ -55,6 +75,7 @@ public class StockDAOImpl implements StockDAO {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public StockModel getStockById(int id) {
@@ -79,7 +100,7 @@ public class StockDAOImpl implements StockDAO {
 
     @Override
     public void deleteStock(int id) {
-        try{
+        try {
             Scanner scanner = new Scanner(System.in);
             StockModel stock = getStockById(id);
             if (stock != null) {
@@ -108,10 +129,9 @@ public class StockDAOImpl implements StockDAO {
         }
     }
 
-
-
     @Override
     public void updateStock(StockModel stock) {
+        System.out.println(stock);
         String updateSql = "UPDATE stock SET name = ?, unit_price = ?, qty = ? WHERE id = ?";
         try (PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
             updateStatement.setString(1, stock.getName());
@@ -127,6 +147,17 @@ public class StockDAOImpl implements StockDAO {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error updating stock with ID: " + stock.getId(), e);
+        }
+    }
+
+
+    @Override
+    public void updateStockUnsaved(StockModel stock) {
+        try {
+            getStockModelsUnSaveUpdate.add(stock);
+            System.out.println("Stock added to getStockModelsUnSaveUpdate list.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -156,43 +187,50 @@ public class StockDAOImpl implements StockDAO {
 
 
     @Override
-    public void saveStock(StockModel stock) {
-        try {
-            if (getStockById(stock.getId()) != null) {
-                System.out.println("Stock with ID " + stock.getId() + " already exists in the database.");
-                return;
-            }
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Are you sure you want to save the stock? (Y/N)");
-            String confirmation = scanner.next().toUpperCase().trim();
-            if ("Y".equalsIgnoreCase(confirmation)) {
-                String insertSql = "INSERT INTO stock (id, name, unit_price, qty, imported_date) VALUES (?, ?, ?, ?, ?)";
-                try (PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
-                    insertStatement.setInt(1, stock.getId());
-                    insertStatement.setString(2, stock.getName());
-                    insertStatement.setDouble(3, stock.getUnitPrice());
-                    insertStatement.setInt(4, stock.getQty());
-                    insertStatement.setDate(5, new java.sql.Date(stock.getImportedDate().getTime()));
+    public void saveStock() {
+        Scanner scanner = new Scanner(System.in);
 
-                    int rowsInserted = insertStatement.executeUpdate();
-                    if (rowsInserted > 0) {
-                        System.out.println("Stock with ID " + stock.getId() + " saved successfully.");
+        while (true) {
+            System.out.println("Do you want to save Unsaved Insertions or Unsaved Updates? Please choose one of them:");
+            System.out.println("'Ui' to save Unsaved Insertions");
+            System.out.println("'Uu' to save Unsaved Updates");
+            System.out.println("'B' to go back to the main menu");
+            System.out.print("Enter your option : ");
+
+            String choice = scanner.nextLine().trim().toLowerCase();
+
+            switch (choice) {
+                case "ui":
+                    if (!stockModelsUnSaveInsert.isEmpty()) {
+                        for (StockModel stock : stockModelsUnSaveInsert) {
+                            insertStock(stock);
+                        }
+                        stockModelsUnSaveInsert.clear();
+                        System.out.println("Unsaved insertions saved successfully.");
                     } else {
-                        System.out.println("Failed to save stock with ID " + stock.getId() + ".");
+                        System.out.println("No unsaved insertions available.");
                     }
-                }
-            } else {
-                System.out.println("Save operation canceled.");
+                    break;
+                case "uu":
+                    if (!getStockModelsUnSaveUpdate.isEmpty()) {
+                        for (StockModel stock : getStockModelsUnSaveUpdate) {
+                            updateStock(stock);
+                        }
+                        getStockModelsUnSaveUpdate.clear();
+                        System.out.println("Unsaved updates saved successfully.");
+                    } else {
+                        System.out.println("No unsaved updates available.");
+                    }
+                    break;
+                case "b":
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please enter 'Ui', 'Uu', or 'B'.");
+                    break;
             }
-            scanner.close();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error saving stock with ID: " + stock.getId(), e);
         }
     }
 
-    @Override
-    public void unSaveStock() {
 
-    }
 
 }

@@ -1,19 +1,23 @@
 package View;
 
 import Controller.MainController;
+import DAO.StockDAO;
+import DAO.StockDAOImpl;
 import Model.StockModel;
 import org.nocrala.tools.texttablefmt.BorderStyle;
 import org.nocrala.tools.texttablefmt.CellStyle;
 import org.nocrala.tools.texttablefmt.ShownBorders;
 import org.nocrala.tools.texttablefmt.Table;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static View.ColorCode.red;
@@ -23,7 +27,7 @@ public class StockView {
     private Scanner scanner;
     private static Integer currentPage = 1;
     private static Integer pageSize = 1;
-    private static Integer rowPerPage = 4;
+    private static Integer rowPerPage = setRowPerPageFromFile();
     private final MainController mainController;
 
 
@@ -51,6 +55,7 @@ public class StockView {
         System.out.print("\t\tS) Search");
         System.out.println("\t\tSe) Set Row\n");
         System.out.print("Sa) Save ");
+        System.out.print("\t\tUN) Unsave");
         System.out.print("\t\tBa) Backup");
         System.out.print("\t\tRe) Restore");
         System.out.println("\t\tE) Exit\n");
@@ -132,17 +137,14 @@ public class StockView {
                     System.out.println(table5.render());
                     scanner.nextLine();
                     break;
-                case "Se":
+                case "SE":
                     setRow();
                     break;
-                case "Sa":
-
+                case "SA":
+                    mainController.saveStock();
                     break;
-                case "Ba":
-                    // Handle backup option
-                    break;
-                case "Re":
-                    // Handle restore option
+                case "UN":
+                    previewUnSaveStock();
                     break;
                 case "E":
                     System.exit(0);
@@ -207,8 +209,8 @@ public class StockView {
     }
 
     public void setRow() {
-        System.out.println("y".repeat(15));
-        System.out.println("# Set rows to display in table");
+
+        System.out.println("Set rows to display in table");
         int rowInput = 0;
         boolean validInput = false;
         while (!validInput) {
@@ -230,6 +232,14 @@ public class StockView {
             rowPerPage = rowInput;
             System.out.println("# Rows set successfully!");
         }
+        try {
+            FileWriter writer = new FileWriter("stockrow.txt");
+            writer.write(Integer.toString(rowInput));
+            writer.close();
+            System.out.println("Row number has been written to 'stockrow.txt'.");
+        } catch (IOException e) {
+            System.out.println("An error occurred while writing to file: " + e.getMessage());
+        }
         System.out.println("#".repeat(15));
     }
 
@@ -240,7 +250,7 @@ public class StockView {
             table.addCell(red+ "Product", new CellStyle(CellStyle.HorizontalAlign.CENTER));
             table.addCell(red+"Id : "+ stockModel.getId());
             table.addCell(red+"Name : "+ stockModel.getName());
-            table.addCell(red+"Price : "+ stockModel.getUnitPrice());
+            table.addCell(red+"Unit Price : "+ stockModel.getUnitPrice());
             table.addCell(red+"QTY : "+ stockModel.getQty());
             table.addCell(red+"Imported date : "+stockModel.getImportedDate());
             System.out.println(table.render());
@@ -254,15 +264,50 @@ public class StockView {
             System.out.println("Product not found.");
         }
     }
+    public static int setRowPerPageFromFile() {
+        int rowsPerPage = 4;
+        File file = new File("stockrow.txt");
+        try {
+            Scanner scanner = new Scanner(file);
+            if (scanner.hasNextInt()) {
+                rowsPerPage = scanner.nextInt();
+            } else {
+                System.out.println("File does not contain a valid integer.");
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("File 'stockrow.txt' not found. Using default value.");
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input found in file. Using default value.");
+        }
+        return rowsPerPage;
+    }
 
-    public void previewUpdate(String code, String name, double price, int qty, String date) {
-        Table table = new Table(1, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.SURROUND);
-        System.out.println("Product's All Details Preview After Update:");
-        table.addCell(red + "ID" + " ".repeat(20) + ": " + code);
-        table.addCell(red + "Name" + " ".repeat(18) + ": " + name);
-        table.addCell(red + "Unit Price" + " ".repeat(12) + ": " + price);
-        table.addCell(red + "Qty" + " ".repeat(19) + ": " + qty);
-        table.addCell(red + "Imported Date" + " ".repeat(9) + ": " + date + reset);
-        System.out.println(table.render());
+    public void previewUnSaveStock() {
+        List<StockModel> unSavedInsertStock = mainController.unSavedInsertStock();
+        List<StockModel> unSavedUpdateStock = mainController.unSavedUpdateStock();
+        Table table7 = new Table(4, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE,ShownBorders.ALL);
+        CellStyle textAlign = new CellStyle(CellStyle.HorizontalAlign.CENTER);
+        table7.addCell(red + "Name" + reset, textAlign);
+        table7.addCell(red + "Unit Price" + reset, textAlign);
+        table7.addCell(red + "QTY" + reset, textAlign);
+        table7.addCell(red + "Imported At" + reset, textAlign);
+        unSavedInsertStock.forEach(stockModel ->{
+
+            table7.addCell(stockModel.getName());
+            table7.addCell(String.valueOf(stockModel.getUnitPrice()));
+            table7.addCell(String.valueOf(stockModel.getQty()));
+            table7.addCell(String.valueOf(stockModel.getImportedDate()));
+        });
+        unSavedUpdateStock.forEach(stockModel -> {
+
+            table7.addCell(stockModel.getName());
+            table7.addCell(String.valueOf(stockModel.getUnitPrice()));
+            table7.addCell(String.valueOf(stockModel.getQty()));
+            table7.addCell(String.valueOf(stockModel.getImportedDate()));
+        });
+        System.out.println(table7.render());
+        System.out.println("Press any key to continue....");
+        scanner.nextLine();
     }
 }

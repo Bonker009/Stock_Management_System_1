@@ -7,11 +7,19 @@ import java.util.List;
 
 public interface StockDAO {
     List<StockModel> getAllStocks() throws SQLException;
-    void insertStock(StockModel stock);
+
+    void insertStockUnsaved(StockModel stock);
+
     StockModel getStockById(int id);
+
     void deleteStock(int id);
+
     void updateStock(StockModel stock);
+
     List<StockModel> searchStockByName(String name);
-    void saveStock(StockModel stock)  throws SQLException;
-    void unSaveStock();
+
+    void saveStock();
+
+    void insertStock(StockModel stock);
+    void updateStockUnsaved(StockModel stock);
 }

@@ -1,6 +1,7 @@
 package Controller;
 
 import DAO.StockDAO;
+import DAO.StockDAOImpl;
 import Model.StockModel;
 
 import java.sql.SQLException;
@@ -20,11 +21,8 @@ public class MainController {
         return stockDAO.searchStockByName(name);
     }
 
-    public void saveRecord(StockModel stockModel) throws SQLException {
-        stockDAO.saveStock(stockModel);
-    }
     public void insertStock(StockModel stockModel) throws SQLException{
-        stockDAO.insertStock(stockModel);
+        stockDAO.insertStockUnsaved(stockModel);
     }
     public void deleteStock(int id){
         stockDAO.deleteStock(id);
@@ -33,7 +31,16 @@ public class MainController {
         return stockDAO.getStockById(id);
     }
     public void updateStock(StockModel stockModel){
-        stockDAO.updateStock(stockModel);
+        stockDAO.updateStockUnsaved(stockModel);
+    }
+    public List<StockModel> unSavedUpdateStock(){
+        return StockDAOImpl.getStockModelsUnSaveInsert();
+    }
+    public List<StockModel> unSavedInsertStock(){
+        return StockDAOImpl.getGetStockModelsUnSaveUpdate();
+    }
+    public void saveStock(){
+        stockDAO.saveStock();
     }
 
 }
