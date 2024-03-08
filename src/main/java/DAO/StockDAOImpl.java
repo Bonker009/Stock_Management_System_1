@@ -38,6 +38,7 @@ public class StockDAOImpl implements StockDAO {
                 int qty = resultSet.getInt("qty");
                 Date importedDate = resultSet.getDate("imported_date");
                 StockModel stock = new StockModel(id, name, unitPrice, qty, importedDate);
+
                 stocks.add(stock);
 
             }
@@ -48,7 +49,6 @@ public class StockDAOImpl implements StockDAO {
     @Override
     public void insertStockUnsaved(StockModel stock) {
         try {
-            // Add the stock model to the unSaveInsert list
             stockModelsUnSaveInsert.add(stock);
             System.out.println("Stock added to unSaveInsert list.");
         } catch (Exception e) {

@@ -34,10 +34,10 @@ public class MainController {
         stockDAO.updateStockUnsaved(stockModel);
     }
     public List<StockModel> unSavedUpdateStock(){
-        return StockDAOImpl.getStockModelsUnSaveInsert();
+        return StockDAOImpl.getGetStockModelsUnSaveUpdate();
     }
     public List<StockModel> unSavedInsertStock(){
-        return StockDAOImpl.getGetStockModelsUnSaveUpdate();
+        return StockDAOImpl.getStockModelsUnSaveInsert();
     }
     public void saveStock(){
         stockDAO.saveStock();

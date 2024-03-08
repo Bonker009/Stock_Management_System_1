@@ -1,14 +1,8 @@
 package DatabaseManager;
 
 import View.Animation;
-
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.*;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 
 
 public class DatabaseManager {
@@ -20,7 +14,6 @@ public class DatabaseManager {
 
     public static Connection getConnection() throws SQLException {
         Animation animation = new Animation();
-
         try {
             animation.starting();
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -45,6 +38,7 @@ public class DatabaseManager {
                     "unit_price DOUBLE PRECISION NOT NULL," +
                     "qty INTEGER NOT NULL," +
                     "imported_date DATE NOT NULL DEFAULT CURRENT_DATE)";
+
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate(sql);
 
@@ -111,97 +105,4 @@ public class DatabaseManager {
             handleSQLException(e);
         }
     }
-    public void restoreBackup(String backupFilePath) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(backupFilePath))) {
-            String line;
-            StringBuilder sqlStatements = new StringBuilder();
-
-            while ((line = reader.readLine()) != null) {
-                sqlStatements.append(line);
-                if (line.trim().endsWith(";")) {
-                    executeSqlStatement(sqlStatements.toString());
-                    sqlStatements.setLength(0);
-                }
-            }
-            System.out.println("Backup data restored successfully.");
-        } catch (IOException e) {
-            System.out.println("Error restoring backup data: " + e.getMessage());
-        }
-    }
-
-    private void executeSqlStatement(String sql) {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate(sql);
-        } catch (SQLException e) {
-            System.out.println("Error executing SQL statement: " + e.getMessage());
-        }
-    }
-    private static String getFormattedDate() {
-        LocalDate now = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd");
-        return now.format(formatter);
-    }
-    public static void exportDataBackUp() {
-        String formattedDate = getFormattedDate();
-        String outputFileName = formattedDate + "_Stock.sql";
-        String projectRoot = System.getProperty("user.dir");
-
-        String sqlFilePath = projectRoot + "/";
-
-        try {
-
-            FileWriter fileWriter = new FileWriter(sqlFilePath);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-
-            // Export data to the SQL file
-            String[] command = {
-                    projectRoot,
-                    "-U",
-                    USERNAME,
-                    "-d",
-                    databaseName,
-                    "--data-only",
-                    "--column-inserts",
-                    "--table=users",
-                    "--file=" + sqlFilePath
-            };
-
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(sqlFilePath)));
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                System.out.println("Data exported successfully. SQL file: " + sqlFilePath);
-            } else {
-                System.out.println("Failed to export data.");
-            }
-
-            // Close the file writer and buffered writer
-            bufferedWriter.close();
-            fileWriter.close();
-        } catch (IOException | InterruptedException e) {
-            System.out.println("Error exporting data: " + e.getMessage());
-        }
-    }
-    public static void backupDatabase(String backupFilePath) {
-        try {
-            String currentDir = System.getProperty("user.dir");
-            String pgDumpPath = currentDir + "/";
-
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    pgDumpPath, "-U", USERNAME, "-d", URL, "-f", backupFilePath);
-            processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Backup process returned non-zero exit code: " + exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
 }
