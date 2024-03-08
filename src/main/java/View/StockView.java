@@ -84,7 +84,7 @@ public class StockView {
                     currentPage = Math.min(scanner.nextInt(), pageSize);
                     break;
                 case "W":
-                    String name = validateInput(scanner, "Enter the product name: ", "^[A-Za-z]+$", "incorrect product name format");
+                    String name = validateInput(scanner, "Enter the product name: ", "^[A-Za-z ]+$", "incorrect product name format");
                     double unit_price = Double.parseDouble(validateInput(scanner, "Enter the product unit price: ", "^[0-9]+$", "The Unit price can be in number format only"));
                     int qty = Integer.parseInt(validateInput(scanner, "Enter the quantity of product: ", "^[0-9]+$", "The quantity can be in number format only!!!"));
                     mainController.insertStock(new StockModel(name, unit_price, qty));
@@ -112,12 +112,12 @@ public class StockView {
                     mainController.updateStock(new StockModel(stockModel1.getId(), newName, newUnit, newQty, stockModel1.getImportedDate()));
                     break;
                 case "D":
-                    int idToDelete = Integer.parseInt(validateInput(scanner, "Enter Product Id to delete", "[0-9]+$", "The ID can be in number format only !!!!"));
+                    int idToDelete = Integer.parseInt(validateInput(scanner, "Enter Product Id to delete : ", "[0-9]+$", "The ID can be in number format only !!!!"));
                     mainController.deleteStock(idToDelete);
                     break;
                 case "S":
                     Table table5 = new Table(5, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
-                    String searchName = validateInput(scanner, "Enter Product Name to Search : ", "^[A-Za-z]+$", "The Name can be in text only!!!!");
+                    String searchName = validateInput(scanner, "Enter Product Name to Search : ", "^[A-Za-z ]+$", "The Name can be in text only!!!!");
                     List<StockModel> stockModel = mainController.searchStockByName(searchName);
                     CellStyle textAlign = new CellStyle(CellStyle.HorizontalAlign.CENTER);
 //                    System.out.println(stockModel.isEmpty());

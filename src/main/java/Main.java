@@ -15,7 +15,7 @@ public class Main {
         try {
             connection = DatabaseManager.getConnection();
             DatabaseManager.createStockTableIfNotExists();
-            DatabaseManager.dataInitializer();
+//            DatabaseManager.dataInitializer();
             stockDAOImpl = new StockDAOImpl(connection);
         } catch (SQLException e) {
             e.printStackTrace();

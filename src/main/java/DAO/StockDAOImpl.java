@@ -110,16 +110,22 @@ public class StockDAOImpl implements StockDAO {
                 System.out.println("Unit Price : " + stock.getUnitPrice());
                 System.out.println("Quantity : " + stock.getQty());
                 System.out.println("Imported date : " + stock.getImportedDate());
-                String confirmation = validateInput(scanner, "Enter Y to confirm or Enter any other key to cancel: ", "^[A-Za-z]+$", "Invalid input. Please enter Y or N.");
-                String deleteSql = "DELETE FROM stock WHERE id = ?";
-                try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSql)) {
-                    deleteStatement.setInt(1, id);
-                    int rowsDeleted = deleteStatement.executeUpdate();
-                    if (rowsDeleted > 0) {
-                        System.out.println("Stock with id : " + id + " deleted successfully ");
-                    } else {
-                        System.out.println("Failed to delete stock with id : " + id);
+
+                String confirmation = validateInput(scanner, "Enter Y to confirm or Enter any other key to cancel: ", "^[YyNn]$", "Invalid input. Please enter Y or N.");
+
+                if (confirmation.equalsIgnoreCase("Y")) {
+                    String deleteSql = "DELETE FROM stock WHERE id = ?";
+                    try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSql)) {
+                        deleteStatement.setInt(1, id);
+                        int rowsDeleted = deleteStatement.executeUpdate();
+                        if (rowsDeleted > 0) {
+                            System.out.println("Stock with id : " + id + " deleted successfully ");
+                        } else {
+                            System.out.println("Failed to delete stock with id : " + id);
+                        }
                     }
+                } else {
+                    System.out.println("Deletion cancelled by user.");
                 }
             } else {
                 System.out.println("Stock with ID " + id + " not found");
