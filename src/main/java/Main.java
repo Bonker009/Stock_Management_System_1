@@ -22,7 +22,6 @@ public class Main {
         }
         MainController mainController = new MainController(stockDAOImpl);
         StockView stockView = new StockView(mainController);
-        assert connection != null;
         stockView.start();
     }
 }
