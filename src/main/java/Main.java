@@ -9,13 +9,12 @@ import java.sql.Connection;
 
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) throws Exception {
         StockDAO stockDAOImpl = null;
         Connection connection = null;
         try {
             connection = DatabaseManager.getConnection();
             DatabaseManager.createStockTableIfNotExists();
-//            DatabaseManager.dataInitializer();
             stockDAOImpl = new StockDAOImpl(connection);
         } catch (SQLException e) {
             e.printStackTrace();

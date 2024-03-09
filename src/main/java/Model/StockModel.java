@@ -17,7 +17,7 @@ public class StockModel {
         this.importedDate = Date.valueOf(LocalDate.now());
     }
 
-    public StockModel(int id, String name, double unitPrice, int qty,java.sql.Date importedDate) {
+    public StockModel(int id, String name, double unitPrice, int qty,Date importedDate) {
         this.id = id;
         this.name = name;
         this.unitPrice = unitPrice;
@@ -55,17 +55,12 @@ public class StockModel {
     public void setQty(int qty) {
         this.qty = qty;
     }
-
-    public java.sql.Date getImportedDate() {
+    public Date getImportedDate() {
         return importedDate;
     }
-
     public void setImportedDate(Date importedDate) {
         this.importedDate = importedDate;
     }
-
-
-
     @Override
     public String toString() {
         return "Stock [id=" + id + ", name=" + name + ", unitPrice=" + unitPrice + ", quantity=" + qty + ", importedDate=" + importedDate + "]";
