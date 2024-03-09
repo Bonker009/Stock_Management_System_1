@@ -69,8 +69,8 @@ public class StockView {
             displayMenu();
             choice = validateInput(scanner, "Enter your option: ", "^[A-Za-z]+$", red + "The option can only be entered in text format!!" + reset);
             switch (choice.toUpperCase()) {
-                case "BA":{
-                    DatabaseManager.generateNextBackup(fileNameFormat,mainController.getAllStocks());
+                case "BA": {
+                    DatabaseManager.generateNextBackup(fileNameFormat, mainController.getAllStocks());
                     break;
                 }
                 case "F":
@@ -125,7 +125,6 @@ public class StockView {
                     Table table5 = new Table(5, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
                     String searchName = validateInput(scanner, "Enter Product Name to Search : ", "^[A-Za-z ]+$", "The Name can be in text only!!!!");
                     List<StockModel> stockModel = mainController.searchStockByName(searchName);
-
 //                    System.out.println(stockModel.isEmpty());
                     addTableHeader(table5);
                     table5.setColumnWidth(0, 5, 30);
@@ -142,17 +141,41 @@ public class StockView {
                     System.out.println(table5.render());
                     scanner.nextLine();
                     break;
-                case "RE":{
+                case "RE": {
                     Table table8 = new Table(2, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
-                    table8.addCell("List of Backup Data",textAlign,2);
-                    String[] filenames =  DatabaseManager.getBackupFileNames("BackUpDataStorage/");
-                    for (int i = 0; i < filenames.length;i++){
-                        table8.addCell(String.valueOf(i+1),textAlign);
-                        table8.addCell(filenames[i],textAlign);
+                    table8.addCell("List of Backup Data", textAlign, 2);
+                    String[] filenames = DatabaseManager.getBackupFileNames("BackUpDataStorage/");
+                    for (int i = 0; i < filenames.length; i++) {
+                        table8.addCell(String.valueOf(i + 1), textAlign);
+                        table8.addCell(filenames[i], textAlign);
+                    }
+                    if (filenames.length == 0) {
+                        table8.addCell("No Backup File", textAlign);
                     }
                     System.out.println(table8.render());
-                    int databaseNumber = Integer.parseInt(validateInput(scanner,"Enter number to restore: ","^[0-9]+$","Wrong format, Please Enter number!!"));
-                    DatabaseManager.executeBackupFile("BackUpDataStorage/"+filenames[databaseNumber-1]);
+
+                    while (true) {
+                        String userInput = validateInput(scanner, "Enter number to restore or 'b' to go back: ", "^[0-9b]+$", "Wrong format. Please enter a number or 'b'!");
+
+                        if (userInput.equalsIgnoreCase("b")) {
+                            System.out.println("Going back...");
+                            break;
+                        }
+
+                        int databaseNumber = Integer.parseInt(userInput);
+                        if (databaseNumber < 1 || databaseNumber > filenames.length) {
+                            System.out.println("Invalid database number. Please try again.");
+                            continue;
+                        }
+
+                        try {
+                            DatabaseManager.executeBackupFile("BackUpDataStorage/" + filenames[databaseNumber - 1]);
+                            System.out.println("Backup restored successfully!");
+                            break;
+                        } catch (IOException e) {
+                            System.err.println("Error restoring backup: " + e.getMessage());
+                        }
+                    }
                     break;
                 }
                 case "SE":
@@ -193,7 +216,6 @@ public class StockView {
         Table table = new Table(5, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
         table.setColumnWidth(0, 5, 30);
         table.setColumnWidth(1, 15, 35);
-        /**/
         table.setColumnWidth(2, 15, 20);
         table.setColumnWidth(3, 15, 20);
         table.setColumnWidth(4, 15, 20);
@@ -225,6 +247,7 @@ public class StockView {
         table.addCell(red + stockModel.getQty(), textAlign);
         table.addCell(red + stockModel.getImportedDate() + reset, textAlign);
     }
+
     public void setRow() {
         System.out.println("Set rows to display in table");
         int rowInput = 0;
@@ -256,6 +279,7 @@ public class StockView {
         }
         System.out.println("#".repeat(15));
     }
+
     public void displayProductDetails(StockModel stockModel) {
         if (stockModel != null) {
             Table table = new Table(1, BorderStyle.UNICODE_ROUND_BOX, ShownBorders.SURROUND_HEADER_AND_COLUMNS);
@@ -304,7 +328,10 @@ public class StockView {
         Scanner scanner = new Scanner(System.in);
         Table table7 = new Table(4, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
         CellStyle textAlign = new CellStyle(CellStyle.HorizontalAlign.CENTER);
-
+        table7.setColumnWidth(0, 20, 25);
+        table7.setColumnWidth(1, 20, 25);
+        table7.setColumnWidth(2, 15, 25);
+        table7.setColumnWidth(3, 15, 25);
         table7.addCell(green + "Unsaved Product List", textAlign, 4);
         table7.addCell(red + "Name" + reset, textAlign);
         table7.addCell(red + "Unit Price" + reset, textAlign);
@@ -350,6 +377,7 @@ public class StockView {
             }
         }
     }
+
     private void renderUnsavedTable(String title, List<StockModel> stockList, CellStyle textAlign) {
         Table table = new Table(4, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
         table.addCell(title, textAlign, 4);

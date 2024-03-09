@@ -1,31 +1,30 @@
 package DAO;
-
 import Model.StockModel;
+import org.nocrala.tools.texttablefmt.BorderStyle;
+import org.nocrala.tools.texttablefmt.CellStyle;
+import org.nocrala.tools.texttablefmt.ShownBorders;
+import org.nocrala.tools.texttablefmt.Table;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static View.ColorCode.red;
 import static View.StockView.validateInput;
-
 public class StockDAOImpl implements StockDAO {
     private final Connection connection;
     public static List<StockModel> stockModelsUnSaveInsert = new ArrayList<>();
     public static List<StockModel> getStockModelsUnSaveUpdate = new ArrayList<>();
-
     public StockDAOImpl(Connection connection) {
         this.connection = connection;
     }
-
     public static List<StockModel> getStockModelsUnSaveInsert() {
         return stockModelsUnSaveInsert;
     }
-
     public static List<StockModel> getGetStockModelsUnSaveUpdate() {
         return getStockModelsUnSaveUpdate;
     }
-
     @Override
     public List<StockModel> getAllStocks() throws SQLException {
         List<StockModel> stocks = new ArrayList<>();
@@ -38,24 +37,20 @@ public class StockDAOImpl implements StockDAO {
                 int qty = resultSet.getInt("qty");
                 Date importedDate = resultSet.getDate("imported_date");
                 StockModel stock = new StockModel(id, name, unitPrice, qty, importedDate);
-
                 stocks.add(stock);
-
             }
         }
         return stocks;
     }
-
     @Override
     public void insertStockUnsaved(StockModel stock) {
         try {
             stockModelsUnSaveInsert.add(stock);
-            System.out.println("Stock added to unSaveInsert list.");
+            System.out.println("Stock added to unSaved Insert list.");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     @Override
     public void insertStock(StockModel stock) {
         String insertQuery = "INSERT INTO stock (name, unit_price, qty) VALUES (?, ?, ?)";
@@ -75,7 +70,6 @@ public class StockDAOImpl implements StockDAO {
             e.printStackTrace();
         }
     }
-
 
     @Override
     public StockModel getStockById(int id) {
@@ -97,22 +91,27 @@ public class StockDAOImpl implements StockDAO {
             throw new RuntimeException("Error retrieving stock by ID: " + id, e);
         }
     }
-
     @Override
     public void deleteStock(int id) {
+        CellStyle textAlign = new CellStyle(CellStyle.HorizontalAlign.CENTER);
+        Table table5 = new Table(2, BorderStyle.UNICODE_BOX_DOUBLE_BORDER_WIDE, ShownBorders.ALL);
         try {
             Scanner scanner = new Scanner(System.in);
             StockModel stock = getStockById(id);
             if (stock != null) {
-                System.out.println("Stock Details ");
-                System.out.println("ID : " + stock.getId());
-                System.out.println("Name : " + stock.getName());
-                System.out.println("Unit Price : " + stock.getUnitPrice());
-                System.out.println("Quantity : " + stock.getQty());
-                System.out.println("Imported date : " + stock.getImportedDate());
-
-                String confirmation = validateInput(scanner, "Enter Y to confirm or Enter any other key to cancel: ", "^[YyNn]$", "Invalid input. Please enter Y or N.");
-
+                table5.addCell(red + "Stock Details", textAlign, 2);
+                table5.addCell(red + "Id", textAlign);
+                table5.addCell(red + stock.getId());
+                table5.addCell(red + "Name", textAlign);
+                table5.addCell(red + stock.getName());
+                table5.addCell(red + "Unit Price", textAlign);
+                table5.addCell(red + stock.getUnitPrice());
+                table5.addCell(red + "Quantity", textAlign);
+                table5.addCell(red + stock.getQty());
+                table5.addCell(red + "Imported Date", textAlign);
+                table5.addCell(red + stock.getImportedDate());
+                System.out.println(table5.render());
+                String confirmation = validateInput(scanner, "Enter Y to confirm or Enter N to cancel: ", "^[YyNn]$", "Invalid input. Please enter Y or N.");
                 if (confirmation.equalsIgnoreCase("Y")) {
                     String deleteSql = "DELETE FROM stock WHERE id = ?";
                     try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSql)) {
@@ -134,7 +133,6 @@ public class StockDAOImpl implements StockDAO {
             throw new RuntimeException("Error deleting stock with ID: " + id, e);
         }
     }
-
     @Override
     public void updateStock(StockModel stock) {
         System.out.println(stock);
@@ -155,19 +153,15 @@ public class StockDAOImpl implements StockDAO {
             throw new RuntimeException("Error updating stock with ID: " + stock.getId(), e);
         }
     }
-
-
     @Override
     public void updateStockUnsaved(StockModel stock) {
         try {
             getStockModelsUnSaveUpdate.add(stock);
-            System.out.println("Stock added to getStockModelsUnSaveUpdate list.");
+            System.out.println("Stock added to Stock UnSaved Update list.");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
     @Override
     public List<StockModel> searchStockByName(String name) {
         List<StockModel> matchingStocks = new ArrayList<>();
@@ -190,8 +184,6 @@ public class StockDAOImpl implements StockDAO {
         }
         return matchingStocks;
     }
-
-
     @Override
     public void saveStock() {
         Scanner scanner = new Scanner(System.in);
@@ -202,9 +194,7 @@ public class StockDAOImpl implements StockDAO {
             System.out.println("'Uu' to save Unsaved Updates");
             System.out.println("'B' to go back to the main menu");
             System.out.print("Enter your option : ");
-
             String choice = scanner.nextLine().trim().toLowerCase();
-
             switch (choice) {
                 case "ui":
                     if (!stockModelsUnSaveInsert.isEmpty()) {
@@ -236,7 +226,4 @@ public class StockDAOImpl implements StockDAO {
             }
         }
     }
-
-
-
 }

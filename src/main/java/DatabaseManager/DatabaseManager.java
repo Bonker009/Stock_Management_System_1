@@ -121,7 +121,7 @@ public class DatabaseManager {
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd"));
         int nextBackupNumber = findNextBackupNumber(fileNameFormat, currentDate);
         String fileName = "BackUpDataStorage/" + fileNameFormat + "_" + String.format("%02d", nextBackupNumber) + "_" + currentDate + ".sql";
-        String content = generateSQLContent(stockModelList);
+        String content = generateSQLScript(stockModelList);
         writeToFile(fileName, content);
     }
     public static int findNextBackupNumber(String baseFileName, String currentDate) {
@@ -132,7 +132,7 @@ public class DatabaseManager {
         return nextBackupNumber;
     }
 
-    public static String generateSQLContent(List<StockModel> stockModelList) {
+    public static String generateSQLScript(List<StockModel> stockModelList) {
         StringBuilder insertCommand = new StringBuilder();
         insertCommand.append("INSERT INTO ").append(tableName).append(" (name, unit_price, qty, imported_date) VALUES ");
         boolean isFirst = true;
@@ -171,17 +171,18 @@ public class DatabaseManager {
         }
         return directory.list();
     }
-
     public static void executeBackupFile(String filename) throws IOException {
         String content = Files.readString(Paths.get(filename));
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
+            statement.executeUpdate("TRUNCATE TABLE "+tableName);
             statement.executeUpdate(content);
-            System.out.println("Backup file executed successfully.");
+            System.out.println("Database restore successful!.");
         } catch (SQLException e) {
             System.err.println("SQL Error: " + e.getMessage());
         }
     }
+
 }
 
 
